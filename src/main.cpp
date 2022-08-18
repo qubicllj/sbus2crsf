@@ -64,7 +64,19 @@ void loop()
     {
       if (sbus.failsafe())
       {
-        // Serial.println("S.Bus fail safe.");
+// Serial.println("S.Bus fail safe.");
+#if defined(AETR) && not defined(AETR_TO_TAER)
+        rcChannels[0] = CRSF_CHANNEL_MID;
+        rcChannels[1] = CRSF_CHANNEL_MID;
+        rcChannels[2] = CRSF_CHANNEL_MIN;
+        rcChannels[3] = CRSF_CHANNEL_MID;
+#else
+        rcChannels[0] = CRSF_CHANNEL_MIN;
+        rcChannels[1] = CRSF_CHANNEL_MID;
+        rcChannels[2] = CRSF_CHANNEL_MID;
+        rcChannels[3] = CRSF_CHANNEL_MID;
+#endif
+        rcChannels[4] = CRSF_CHANNEL_MIN;
       }
       else
       {
@@ -83,9 +95,9 @@ void loop()
         {
           rcChannels[i] = map(sbus.ch().at(i), SWITCH_END_MIN, SWITCH_END_MAX, CRSF_CHANNEL_MIN, CRSF_CHANNEL_MAX);
         }
-        crsfPreparePacket(crsfPacket, rcChannels);
-        crsf.write(crsfPacket, CRSF_PACKET_SIZE);
       }
+      crsfPreparePacket(crsfPacket, rcChannels);
+      crsf.write(crsfPacket, CRSF_PACKET_SIZE);
     }
     crsfTime = currentMicros + CRSF_TIME_BETWEEN_FRAMES_US;
   }
