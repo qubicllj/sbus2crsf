@@ -3,7 +3,11 @@
 #include "crsf.h"
 #include "_config.h"
 
-#if defined(FUTABA)
+#if defined(END_POINT_CUSTOM) && (not defined(STICK_END_MIN) || not defined(STICK_END_MAX) || not defined(SWITCH_END_MIN) || not defined(SWITCH_END_MAX))
+#error "END_POINT_CUSTOM defined but end point is not defined!"
+#elif defined(END_POINT_CUSTOM)
+// Ignore RC brand.
+#elif defined(FUTABA)
 #define STICK_END_MIN 368
 #define STICK_END_MAX 1680
 #define SWITCH_END_MIN 144
@@ -19,10 +23,7 @@
 #define SWITCH_END_MIN 193
 #define SWITCH_END_MAX 1791
 #else
-#define STICK_END_MIN 368
-#define STICK_END_MAX 1680
-#define SWITCH_END_MIN 144
-#define SWITCH_END_MAX 1904
+#error "Unsupported RC brand and END_POINT_CUSTOM is not defined."
 #endif
 
 bfs::SbusRx sbus(&Serial);
