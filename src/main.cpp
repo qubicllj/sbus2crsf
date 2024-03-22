@@ -7,17 +7,17 @@
 #error "END_POINT_CUSTOM defined but end point is not defined!"
 #elif defined(END_POINT_CUSTOM)
 // Ignore RC brand.
-#elif defined(FUTABA)
+#elif defined(TX_FUTABA)
 #define STICK_END_MIN 368
 #define STICK_END_MAX 1680
 #define SWITCH_END_MIN 144
 #define SWITCH_END_MAX 1904
-#elif defined(FRSKY)
+#elif defined(TX_FRSKY)
 #define STICK_END_MIN 172
 #define STICK_END_MAX 1810
 #define SWITCH_END_MIN 172
 #define SWITCH_END_MAX 1810
-#elif defined(TURNIGY_EVOLUTION)
+#elif defined(TX_FLYSKY)
 #define STICK_END_MIN 193
 #define STICK_END_MAX 1791
 #define SWITCH_END_MIN 193
@@ -25,6 +25,41 @@
 #else
 #error "Unsupported RC brand and END_POINT_CUSTOM is not defined."
 #endif
+
+#define AUX1 4
+enum input_order
+{
+#if defined(INPUT_AETR)
+    INPUT_AILERON,
+    INPUT_ELEVATOR,
+    INPUT_THROTTLE,
+    INPUT_RUDDER
+#elif defined(INPUT_TAER)
+    INPUT_THROTTLE,
+    INPUT_AILERON,
+    INPUT_ELEVATOR,
+    INPUT_RUDDER
+#else
+#error "Unsupported input channel order."
+#endif
+};
+
+enum output_order
+{
+#if defined(OUTPUT_AETR)
+    OUTPUT_AILERON,
+    OUTPUT_ELEVATOR,
+    OUTPUT_THROTTLE,
+    OUTPUT_RUDDER
+#elif defined(OUTPUT_TAER)
+    OUTPUT_THROTTLE,
+    OUTPUT_AILERON,
+    OUTPUT_ELEVATOR,
+    OUTPUT_RUDDER
+#else
+#error "Unsupported output channel order."
+#endif
+};
 
 bfs::SbusRx sbus(&Serial);
 
@@ -43,7 +78,7 @@ void setup()
 #else
   sbus.Begin();
 #endif
-  rcChannels[4] = CRSF_CHANNEL_MIN;
+  rcChannels[AUX1] = CRSF_CHANNEL_MIN;
   for (int i = 12; i < 16; i++)
   {
     rcChannels[i] = CRSF_CHANNEL_MID;
@@ -65,33 +100,19 @@ void loop()
     {
       if (sbus.failsafe())
       {
-// Serial.println("S.Bus fail safe.");
-#if defined(AETR) && not defined(AETR_TO_TAER)
-        rcChannels[0] = CRSF_CHANNEL_MID;
-        rcChannels[1] = CRSF_CHANNEL_MID;
-        rcChannels[2] = CRSF_CHANNEL_MIN;
-        rcChannels[3] = CRSF_CHANNEL_MID;
-#else
-        rcChannels[0] = CRSF_CHANNEL_MIN;
-        rcChannels[1] = CRSF_CHANNEL_MID;
-        rcChannels[2] = CRSF_CHANNEL_MID;
-        rcChannels[3] = CRSF_CHANNEL_MID;
-#endif
-        rcChannels[4] = CRSF_CHANNEL_MIN;
+        // Serial.println("S.Bus fail safe.");
+        rcChannels[OUTPUT_THROTTLE] = CRSF_CHANNEL_MIN; // Throttle low
+        rcChannels[OUTPUT_AILERON] = CRSF_CHANNEL_MID;  //
+        rcChannels[OUTPUT_ELEVATOR] = CRSF_CHANNEL_MID; //
+        rcChannels[OUTPUT_RUDDER] = CRSF_CHANNEL_MID;   //
+        rcChannels[AUX1] = CRSF_CHANNEL_MIN;     // ARM low
       }
       else
       {
-#if defined(AETR) && defined(AETR_TO_TAER)
-        rcChannels[0] = map(sbus.ch().at(2), STICK_END_MIN, STICK_END_MAX, CRSF_CHANNEL_MIN, CRSF_CHANNEL_MAX);
-        rcChannels[1] = map(sbus.ch().at(0), STICK_END_MIN, STICK_END_MAX, CRSF_CHANNEL_MIN, CRSF_CHANNEL_MAX);
-        rcChannels[2] = map(sbus.ch().at(1), STICK_END_MIN, STICK_END_MAX, CRSF_CHANNEL_MIN, CRSF_CHANNEL_MAX);
-        rcChannels[3] = map(sbus.ch().at(3), STICK_END_MIN, STICK_END_MAX, CRSF_CHANNEL_MIN, CRSF_CHANNEL_MAX);
-#else
-        rcChannels[0] = map(sbus.ch().at(0), STICK_END_MIN, STICK_END_MAX, CRSF_CHANNEL_MIN, CRSF_CHANNEL_MAX);
-        rcChannels[1] = map(sbus.ch().at(1), STICK_END_MIN, STICK_END_MAX, CRSF_CHANNEL_MIN, CRSF_CHANNEL_MAX);
-        rcChannels[2] = map(sbus.ch().at(2), STICK_END_MIN, STICK_END_MAX, CRSF_CHANNEL_MIN, CRSF_CHANNEL_MAX);
-        rcChannels[3] = map(sbus.ch().at(3), STICK_END_MIN, STICK_END_MAX, CRSF_CHANNEL_MIN, CRSF_CHANNEL_MAX);
-#endif
+        rcChannels[OUTPUT_AILERON] = map(sbus.ch().at(INPUT_AILERON), STICK_END_MIN, STICK_END_MAX, CRSF_CHANNEL_MIN, CRSF_CHANNEL_MAX);
+        rcChannels[OUTPUT_ELEVATOR] = map(sbus.ch().at(INPUT_ELEVATOR), STICK_END_MIN, STICK_END_MAX, CRSF_CHANNEL_MIN, CRSF_CHANNEL_MAX);
+        rcChannels[OUTPUT_THROTTLE] = map(sbus.ch().at(INPUT_THROTTLE), STICK_END_MIN, STICK_END_MAX, CRSF_CHANNEL_MIN, CRSF_CHANNEL_MAX);
+        rcChannels[OUTPUT_RUDDER] = map(sbus.ch().at(INPUT_RUDDER), STICK_END_MIN, STICK_END_MAX, CRSF_CHANNEL_MIN, CRSF_CHANNEL_MAX);
         for (int i = 4; i < 12; i++)
         {
           rcChannels[i] = map(sbus.ch().at(i), SWITCH_END_MIN, SWITCH_END_MAX, CRSF_CHANNEL_MIN, CRSF_CHANNEL_MAX);

@@ -1,12 +1,13 @@
 // receiver type
-#define FUTABA
-// #define TURNIGY_EVOLUTION
-// #define FRSKY
+// #define TX_FUTABA
+// #define TX_FLYSKY
+// #define TX_FRSKY
 
-#define AETR
-// #define TAER
+// #define INPUT_AETR
+// #define INPUT_TAER
 
-// #define AETR_TO_TAER
+// #define OUTPUT_AETR
+// #define OUTPUT_TAER
 
 // #define END_POINT_CUSTOM
 // #define STICK_END_MIN 368
